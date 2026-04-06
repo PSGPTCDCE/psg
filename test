@@ -1,0 +1,66 @@
+Hdfs-site.xml:
+<configuration>
+
+ <property>
+ <name>dfs.replication</name>
+ <value>1</value>
+ </property>
+
+ <property>
+ <name>dfs.namenode.name.dir</name>
+ <value>file:///C:/hadoop/hadoop-3.2.4/data/namenode</value>
+ </property>
+
+ <property>
+ <name>dfs.datanode.data.dir</name>
+ <value>file:///C:/hadoop/hadoop-3.2.4/data/datanode</value>
+ </property>
+
+</configuration>
+
+core-site:
+<configuration>
+ <property>
+ <name>fs.defaultFS</name>
+ <value>hdfs://localhost:9000</value>
+ </property>
+ </configuration>
+
+mapred-site:
+<configuration>
+ <property>
+ <name>mapreduce.framework.name</name>
+ <value>yarn</value>
+ </property>
+ </configuration>
+
+yarn-site:
+<configuration>
+ <property>
+ <name>yarn.nodemanager.aux-services</name>
+ <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+ <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
+ <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+ </property>
+ </configuration>
+
+python:
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return """
+    <html>
+    <body>
+        <h2>yoo!</h2>
+        <p style="color:red;background:yellow;">whats up mah</p>
+    </body>
+    </html>
+    """
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8080, debug=True)
