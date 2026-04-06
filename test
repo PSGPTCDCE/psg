@@ -46,6 +46,43 @@ yarn-site:
  </property>
  </configuration>
 
+wordcont:
+package wordcount;
+
+import java.io.*;
+import java.util.*;
+
+public class WordCount {
+
+    public static void main(String[] args) throws Exception {
+
+        Scanner sc = new Scanner(new File("sample.txt"));
+
+        HashMap<String, Integer> count = new HashMap<String, Integer>();
+
+        while (sc.hasNext()) {
+            String w = sc.next();
+
+            if (count.containsKey(w)) {
+                int c = count.get(w);
+                count.put(w, c + 1);
+            } else {
+                count.put(w, 1);
+            }
+        }
+
+        sc.close();
+
+        FileWriter fw = new FileWriter("output.txt");
+
+        for (String w : count.keySet()) {
+            fw.write(w + ":" + count.get(w) + "\n");
+        }
+
+        fw.close();
+    }
+}
+
 python:
 from flask import Flask
 
