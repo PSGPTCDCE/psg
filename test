@@ -1,103 +1,229 @@
-Hdfs-site.xml:
-<configuration>
+1)find-s
+import numpy as np 
+import pandas as pd
+data=pd.read_csv('1.csv')
+print("dataset\n",data)
+attri=np.array(data)[:,:-1]
+tgt=np.array(data)[:,-1]
+print("attribute:\n",attri)
+print("tgt\n",tgt)
 
- <property>
- <name>dfs.replication</name>
- <value>1</value>
- </property>
+def train(a,t):
+    for i,val in enumerate(t):
+        if val=='yes':
+            sph=a[i].copy()
+            break
+    for i,val in enumerate(a):
+        if t[i]=='yes':
+            for x in range(len(sph)):
+                if t[x]!=sph[x]:
+                    sph[x]='?'
+                    return sph
+fh=train(attri,tgt)
+print('final hypothesis\n',fh)
 
- <property>
- <name>dfs.namenode.name.dir</name>
- <value>file:///C:/hadoop/hadoop-3.2.4/data/namenode</value>
- </property>
+2)candi
+import pandas as pd 
+import numpy as np 
+data=pd.read_csv('1.csv')
+print("dataset\n",data)
+attri=np.array(data)[:,:-1]
+tgt=np.array(data)[:,-1]
+print("attribute:\n",attri)
+print("tgt:\n",tgt)
+sph=attri[0].copy()
+gh=["?" for i in range(len(sph))]
+print("sph:\n",sph)
+print("gh:\n",gh)
 
- <property>
- <name>dfs.datanode.data.dir</name>
- <value>file:///C:/hadoop/hadoop-3.2.4/data/datanode</value>
- </property>
+for i,val in enumerate(attri):
+    if tgt[i]=='yes':
+        for x in range(len(sph)):
+            if val[x]!=sph[x]:
+                sph[x]="?"
+                gh[x]="?"
+    if tgt[i]=='no':
+         for x in range(len(sph)):
+             if val[x]!=sph[x]:
+                 gh[x]=sph[x]
+             else:
+                 gh[x]='?'
+print("final gh:\n",gh)
+print("final shp:\n",sph)
 
-</configuration>
+3)
+import pandas as pd
+from efficient_apriori import apriori
+data=pd.read_csv('3.csv',names=['name'],header=None)
+print("dataset:\n",data)
 
-core-site:
-<configuration>
- <property>
- <name>fs.defaultFS</name>
- <value>hdfs://localhost:9000</value>
- </property>
- </configuration>
+trans=[i.split(',') for i in data['name']]
+sets,rules=apriori(trans,min_support=.3,min_confidence=.5)
+print("frequency items:\n")
+for size,i in sets.items():
+    for itemset,sup in i.items():
+        print(f' items:{','.join(itemset):<25} support:{sup:<25.2f}')
+print("association rules:\n")
+print(f"{'antecedent':<25}{'concequent':<25}{'supp':<25}{'confidence':<25}{'lift':<25}")
+for i in rules:
+    print(f'{','.join(i.lhs):<25}{','.join(i.rhs):<25}{i.support:<25.2f}{i.confidence:<25.2f}{i.lift:<25.2f}')
 
-mapred-site:
-<configuration>
- <property>
- <name>mapreduce.framework.name</name>
- <value>yarn</value>
- </property>
- </configuration>
+4)
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score,mean_squared_error
+from sklearn.linear_model import LinearRegression
+data=pd.read_csv('4a.csv')
+print("dataset:\n",data)
+x=data[['x']]
+y=data['y']
+model=LinearRegression()
+model.fit(x,y)
+pred=model.predict(x)
+mse=mean_squared_error(y,pred)
+r2=r2_score(y,pred)
+coef=model.coef_
+intercept=model.intercept_
+print("model prediction: ",pred)
+print("mse: ",mse)
+print("r2: ",r2)
+print("intercept: ",intercept)
+print(“coef: ",coef)
+print()
+plt.scatter(x,y)
+plt.plot(x,pred)
+plt.title("linearregression")
+plt.xlabel('x')
+plt.ylabel('y')
+plt.show()
 
-yarn-site:
-<configuration>
- <property>
- <name>yarn.nodemanager.aux-services</name>
- <value>mapreduce_shuffle</value>
- </property>
- <property>
- <name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>
- <value>org.apache.hadoop.mapred.ShuffleHandler</value>
- </property>
- </configuration>
+4)logist
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score,confusion_matrix,classification_report,roc_curve,auc
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+data=pd.read_csv('4.csv')
+print("dataset:\n",data)
+x=data.drop('res',axis=1)
+y=data['res']
+print("attribute:\n",x)
+print("tgt:\n",y)
 
-wordcont:
-package wordcount;
+x_train,x_test,y_train,y_test=train_test_split(x,y,random_state=20,stratify=y)
+scaler=StandardScaler()
+x_train=scaler.fit_transform(x_train)
+x_test=scaler.fit_transform(x_test)
 
-import java.io.*;
-import java.util.*;
+model=LogisticRegression()
+model.fit(x_train,y_train)
+pred=model.predict(x_test)
+acc=accuracy_score(y_test,pred)
+cm=confusion_matrix(y_test,pred)
+cr=classification_report(y_test,pred)
+print("accuracy: ",acc)
+print("cm: ",cm)
+print("prediction: ",pred)
+print("cr:",cr)
 
-public class WordCount {
+prob=model.predict_proba(x_test)[:,0]
+fpr,tpr,threshold=roc_curve(y_test,prob)
+roc_auc=auc(fpr,tpr)
 
-    public static void main(String[] args) throws Exception {
+plt.plot(fpr,tpr,label=f"AUC={roc_auc:.2f}")
+plt.plot([1,0],[0,1],'--')
+plt.legend()
+plt.title('roc')
+plt.xlabel('fpr')
+plt.ylabel('tpr')
+plt.show()
 
-        Scanner sc = new Scanner(new File("sample.txt"));
+5)id3
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder 
+from sklearn.tree import DecisionTreeClassifier,export_text,plot_tree
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+data =pd.read_csv('5th.csv')
+print('dataset:\n',data)
+le=LabelEncoder()
+for column in data.columns:
+ data[column]=le.fit_transform(data[column])
+x=data.drop('buy',axis=1)
+y=data['buy']
+x_train,x_test,y_train,_y_test=train_test_split(x,y,test_size=.25)
+model=DecisionTreeClassifier()
+model.fit(x_train,y_train)
+pred=model.predict(x_test)
+acc=accuracy_score(y_test,pred)
+print('predciton: ',pred)
+print('acc: ',acc)
 
-        HashMap<String, Integer> count = new HashMap<String, Integer>();
+print('\nID3 rules:\n')
+rules=export_text(model,feature_names=list(x.columns))
+print(rules)
+plt.figure(figsize=(18,4))
+plot_tree(model,feature_names=x.columns,class_names=[str(a) for a in model.classes_],filled=True )
+plt.title('ID3')
+plt.show()
 
-        while (sc.hasNext()) {
-            String w = sc.next();
+6)NB
+import pandas as pd 
+from sklearn.metrics import accuracy_score 
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder 
+data =pd.read_csv('5th.csv')
+print("dataset:\n",data)
+le=LabelEncoder()
+for column in data.columns:
+ data[column]=le.fit_transform(data[column])
+x=data.drop('buy',axis=1)
+y=data['buy']
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=.25)
+print('feature:\n',x.head())
+print("tgt:\n",y.head())
+model=GaussianNB()
+model.fit(x_train,y_train)
+pred=model.predict(x_test)
+acc=accuracy_score(y_test,pred)
+print("prection: \n",pred)
+print("acc:",acc)
 
-            if (count.containsKey(w)) {
-                int c = count.get(w);
-                count.put(w, c + 1);
-            } else {
-                count.put(w, 1);
-            }
-        }
+7)MLC
+import pandas as pd 
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neural_network import MLPClassifier
+data=pd.read_csv('4.csv')
+print(data)
 
-        sc.close();
+le=LabelEncoder()
+for column in data.columns:
+   data[column]=le.fit_transform(data[column])
+x=data.drop('res',axis=1)
+y=data['res']
+model=MLPClassifier(hidden_layer_sizes=(5,1), max_iter=5000,verbose=True)
+model.fit(x,y)
+prob=model.predict_proba(x)
+pred=model.predict(x)
+print('probability\n',prob)
+print('prediction:',pred)
 
-        FileWriter fw = new FileWriter("output.txt");
-
-        for (String w : count.keySet()) {
-            fw.write(w + ":" + count.get(w) + "\n");
-        }
-
-        fw.close();
-    }
-}
-
-python:
-from flask import Flask
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return """
-    <html>
-    <body>
-        <h2>yoo!</h2>
-        <p style="color:red;background:yellow;">whats up mah</p>
-    </body>
-    </html>
-    """
-
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8080, debug=True)
+8)
+import pandas as pd
+from sklearn.cluster import KMeans
+data=pd.read_csv('8.csv')
+print('dataset:\n',data)
+x=data[['x']]
+y=data['y']
+model=KMeans(n_clusters=3)
+model.fit(data)
+cen=model.cluster_centers_
+print('centroids:\n',cen)
+plt.scatter(x,y,c=model.labels_)
+plt.scatter(cen[:,0],cen[:,1],color='red')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('KMeans')
+plt.show()
